@@ -9,6 +9,7 @@
             font-family: 'Paris2024';
             src: url('Paris2024-Variable.ttf') format('truetype');
         }
+
         body {
             display: flex;
             flex-direction: column;
@@ -18,24 +19,33 @@
             margin: 0;
             background-color: #000;
             color: #fff;
-            font-family: Paris2024, Arial, sans-serif;
+            font-family: Arial, sans-serif;
         }
+
         h1 {
             text-align: center;
             margin-bottom: 20px;
+            font-family: 'Paris2024', sans-serif;
+            font-size: 36px;
         }
-        .space {
-            width: 50px;
-        }
+
         .video-container {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
+            /* gap: 20px; Space between videos */
         }
+
+        .newline {
+            width: 100%;
+            height: 0; /* Creates vertical space */
+        }
+
         video {
-            /* margin: 5px; */
+            margin: 5px;
             max-width: 100px;
             max-height: 100px;
+            border: none;
         }
     </style>
 </head>
@@ -79,6 +89,7 @@
 
         document.addEventListener('keydown', function(event) {
             const key = event.key.toLowerCase();
+
             if (videoFiles[key]) {
                 const videos = videoFiles[key];
                 const randomVideo = videos[Math.floor(Math.random() * videos.length)];
@@ -88,10 +99,14 @@
                 videoElement.controls = false;
                 videoElement.loop = false;
                 videoContainer.appendChild(videoElement);
-            }else if (event.key === ' ') {
-                const spaceElement = document.createElement('div');
-                spaceElement.className = 'space';
-                videoContainer.appendChild(spaceElement);
+            } else if (event.key === ' ') {
+                const newlineElement = document.createElement('div');
+                newlineElement.className = 'newline';
+                videoContainer.appendChild(newlineElement);
+            } else if (event.key === 'Enter') {
+                const newlineElement = document.createElement('div');
+                newlineElement.className = 'newline';
+                videoContainer.appendChild(newlineElement);
             }
         });
 
