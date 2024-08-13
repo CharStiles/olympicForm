@@ -124,6 +124,13 @@
                 }
             }
         });
+
+        // Re-focus the input field if it loses focus (e.g., on mobile)
+        hiddenInput.addEventListener('blur', function() {
+            setTimeout(() => {
+                hiddenInput.focus();
+            }, 0);
+        });
     </script>
 </body>
 </html>
