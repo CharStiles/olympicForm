@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Olympic Type</title>
+    <style>
+        @font-face {
+            font-family: 'Paris2024';
+            src: url('Paris2024-Variable.ttf') format('truetype');
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #000;
+            color: #fff;
+            font-family: Paris2024, Arial, sans-serif;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .space {
+            width: 50px;
+        }
+        .video-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        video {
+            /* margin: 5px; */
+            max-width: 100px;
+            max-height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Olympic Type</h1>
+    <div class="video-container" id="videoContainer"></div>
+
+    <script>
+        const videoFiles = {
+            '_': ['__cropped_cropped2.mp4'],
+            '~': ['~_cropped_cropped2.mp4'],
+            'a': ['a_cropped_cropped2.mp4'],
+            'b': ['b_2_cropped_cropped2.mp4', 'b_cropped_cropped2.mp4'],
+            'c': ['c_2_cropped_cropped2.mp4', 'c_cropped_cropped2.mp4'],
+            'd': ['d_2_cropped_cropped2.mp4', 'd_cropped_cropped2.mp4'],
+            'e': ['e_cropped_cropped2.mp4'],
+            'f': ['f_cropped_cropped2.mp4'],
+            'g': ['g_cropped_cropped2.mp4'],
+            'h': ['h_2_cropped_cropped2.mp4', 'h_cropped_cropped2.mp4'],
+            'i': ['i_cropped_cropped2.mp4'],
+            'j': ['j_cropped_cropped2.mp4'],
+            'k': ['k_cropped_cropped2.mp4'],
+            'l': ['l_2_cropped_cropped2.mp4', 'l_cropped_cropped2.mp4'],
+            'm': ['m_cropped_cropped2.mp4'],
+            'n': ['n_cropped_cropped2.mp4'],
+            'o': ['o_cropped_cropped2.mp4'],
+            'p': ['p_cropped_cropped2.mp4'],
+            'q': ['q_2_cropped_cropped2.mp4', 'q_cropped_cropped2.mp4'],
+            'r': ['r_2_cropped_cropped2.mp4', 'r_cropped_cropped2.mp4'],
+            's': ['s_cropped_cropped2.mp4'],
+            't': ['t_cropped_cropped2.mp4'],
+            'u': ['u_2_cropped_cropped2.mp4', 'u_cropped_cropped2.mp4'],
+            'v': ['v_2_cropped_cropped2.mp4', 'v_cropped_cropped2.mp4'],
+            'w': ['w_cropped_cropped2.mp4'],
+            'x': ['x_cropped_cropped2.mp4'],
+            'y': ['y_2_cropped_cropped2.mp4', 'y_cropped_cropped2.mp4'],
+            'z': ['z_cropped_cropped2.mp4']
+        };
+
+        const videoContainer = document.getElementById('videoContainer');
+
+        document.addEventListener('keydown', function(event) {
+            const key = event.key.toLowerCase();
+            if (videoFiles[key]) {
+                const videos = videoFiles[key];
+                const randomVideo = videos[Math.floor(Math.random() * videos.length)];
+                const videoElement = document.createElement('video');
+                videoElement.src = randomVideo;
+                videoElement.autoplay = true;
+                videoElement.controls = false;
+                videoElement.loop = false;
+                videoContainer.appendChild(videoElement);
+            }else if (event.key === ' ') {
+                const spaceElement = document.createElement('div');
+                spaceElement.className = 'space';
+                videoContainer.appendChild(spaceElement);
+            }
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Backspace') {
+                if (videoContainer.lastChild) {
+                    videoContainer.removeChild(videoContainer.lastChild);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
