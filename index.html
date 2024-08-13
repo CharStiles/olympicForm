@@ -93,7 +93,10 @@
         };
 
         const videoContainer = document.getElementById('videoContainer');
+        const hiddenInput = document.getElementById('hiddenInput');
 
+        // Focus the input field on page load
+        hiddenInput.focus();
         document.addEventListener('keydown', function(event) {
             const key = event.key.toLowerCase();
 
