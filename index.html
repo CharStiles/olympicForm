@@ -20,7 +20,7 @@
             background-color: #000;
             color: #fff;
             font-family: Arial, sans-serif;
-            /* overflow-x: hidden; */
+            overflow-x: hidden;
         }
 
         h1 {
@@ -36,18 +36,17 @@
             justify-content: center;
             gap: 20px; /* Space between videos */
             width: 100%;
+            height: 80vh; /* Adjust height as needed */
+            overflow: hidden;
+        }
+
+        .video-container video {
+            border: none;
         }
 
         .newline {
             width: 100%;
             height: 0; /* Creates vertical space */
-        }
-
-        video {
-            margin: 5px;
-            max-width: 100px;
-            max-height: 100px;
-            border: none;
         }
 
         input[type="text"] {
@@ -64,34 +63,34 @@
 
     <script>
         const videoFiles = {
-            '_': ['__cropped_cropped2.mp4'],
-            '~': ['~_cropped_cropped2.mp4'],
-            'a': ['a_cropped_cropped2.mp4'],
-            'b': ['b_2_cropped_cropped2.mp4', 'b_cropped_cropped2.mp4'],
-            'c': ['c_2_cropped_cropped2.mp4', 'c_cropped_cropped2.mp4'],
-            'd': ['d_2_cropped_cropped2.mp4', 'd_cropped_cropped2.mp4'],
-            'e': ['e_cropped_cropped2.mp4'],
-            'f': ['f_cropped_cropped2.mp4'],
-            'g': ['g_cropped_cropped2.mp4'],
-            'h': ['h_2_cropped_cropped2.mp4', 'h_cropped_cropped2.mp4'],
-            'i': ['i_cropped_cropped2.mp4'],
-            'j': ['j_cropped_cropped2.mp4'],
-            'k': ['k_cropped_cropped2.mp4'],
-            'l': ['l_2_cropped_cropped2.mp4', 'l_cropped_cropped2.mp4'],
-            'm': ['m_cropped_cropped2.mp4'],
-            'n': ['n_cropped_cropped2.mp4'],
-            'o': ['o_cropped_cropped2.mp4'],
-            'p': ['p_cropped_cropped2.mp4'],
-            'q': ['q_2_cropped_cropped2.mp4', 'q_cropped_cropped2.mp4'],
-            'r': ['r_2_cropped_cropped2.mp4', 'r_cropped_cropped2.mp4'],
-            's': ['s_cropped_cropped2.mp4'],
-            't': ['t_cropped_cropped2.mp4'],
-            'u': ['u_2_cropped_cropped2.mp4', 'u_cropped_cropped2.mp4'],
-            'v': ['v_2_cropped_cropped2.mp4', 'v_cropped_cropped2.mp4'],
-            'w': ['w_cropped_cropped2.mp4'],
-            'x': ['x_cropped_cropped2.mp4'],
-            'y': ['y_2_cropped_cropped2.mp4', 'y_cropped_cropped2.mp4'],
-            'z': ['z_cropped_cropped2.mp4']
+            '_': ['__cropped.mp4'],
+            '~': ['~_cropped.mp4'],
+            'a': ['a_cropped.mp4'],
+            'b': ['b_2_cropped.mp4', 'b_cropped.mp4'],
+            'c': ['c_2_cropped.mp4', 'c_cropped.mp4'],
+            'd': ['d_2_cropped.mp4', 'd_cropped.mp4'],
+            'e': ['e_cropped.mp4'],
+            'f': ['f_cropped.mp4'],
+            'g': ['g_cropped.mp4'],
+            'h': ['h_2_cropped.mp4', 'h_cropped.mp4'],
+            'i': ['i_2_cropped.mp4', 'i_cropped.mp4'],
+            'j': ['j_cropped.mp4'],
+            'k': ['k_cropped.mp4'],
+            'l': ['l_2_cropped.mp4', 'l_cropped.mp4'],
+            'm': ['m_cropped.mp4'],
+            'n': ['n_cropped.mp4'],
+            'o': ['o_cropped.mp4'],
+            'p': ['p_cropped.mp4'],
+            'q': ['q_2_cropped.mp4', 'q_cropped.mp4'],
+            'r': ['r_2_cropped.mp4', 'r_cropped.mp4'],
+            's': ['s_2_cropped.mp4', 's_cropped.mp4'],
+            't': ['t_cropped.mp4'],
+            'u': ['u_2_cropped.mp4', 'u_cropped.mp4'],
+            'v': ['v_2_cropped.mp4', 'v_cropped.mp4'],
+            'w': ['w_cropped.mp4'],
+            'x': ['x_2_cropped.mp4', 'x_cropped.mp4'],
+            'y': ['y_2_cropped.mp4', 'y_cropped.mp4'],
+            'z': ['z_cropped.mp4']
         };
 
         const videoContainer = document.getElementById('videoContainer');
@@ -114,6 +113,7 @@
                 videoElement.muted = true; // Mute video to prevent fullscreen on mobile
                 videoElement.playsinline = true; // Prevents fullscreen on iOS
                 videoContainer.appendChild(videoElement);
+                adjustVideoSizes(); // Adjust sizes when a new video is added
             } else if (event.key === ' ') {
                 const newlineElement = document.createElement('div');
                 newlineElement.className = 'newline';
@@ -129,9 +129,26 @@
             if (event.key === 'Backspace') {
                 if (videoContainer.lastChild) {
                     videoContainer.removeChild(videoContainer.lastChild);
+                    adjustVideoSizes(); // Adjust sizes when a video is removed
                 }
             }
         });
+
+        // Function to adjust video sizes based on the number of videos
+        function adjustVideoSizes() {
+            const videos = videoContainer.querySelectorAll('video');
+            const containerWidth = videoContainer.clientWidth;
+            const containerHeight = videoContainer.clientHeight;
+
+            const videoCount = videos.length;
+            const baseSize = Math.min(containerWidth, containerHeight) ;
+            const sizeStep = Math.max(200, baseSize / Math.ceil(Math.sqrt(videoCount)));
+
+            videos.forEach((video) => {
+                video.style.width = `${sizeStep}px`;
+                video.style.height = `${sizeStep}px`;
+            });
+        }
 
         // Re-focus the input field if it loses focus (e.g., on mobile)
         hiddenInput.addEventListener('blur', function() {
