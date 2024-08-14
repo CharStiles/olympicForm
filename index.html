@@ -34,7 +34,7 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 20px; /* Space between videos */
+            /* gap: 20px; Space between videos */
             width: 100%;
             height: 80vh; /* Adjust height as needed */
             overflow: hidden;
@@ -61,6 +61,16 @@
             mix-blend-mode: multiply;
             opacity: 0;
             transition: opacity 2s ease-in-out;
+
+            filter: blur(3px);
+            -webkit-filter: blur(3px);
+            -moz-filter: blur(3px);
+            -o-filter: blur(3px);
+            -ms-filter: blur(3px);
+            /* margin: 0 -5%; */
+            outline:10px solid #555;
+            background-color: #555;
+
         }
 
         .newline {
