@@ -40,8 +40,27 @@
             overflow: hidden;
         }
 
-        .video-container video {
+        .video-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        video {
             border: none;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            mix-blend-mode: multiply;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
         }
 
         .newline {
@@ -112,7 +131,23 @@
                 videoElement.loop = false;
                 videoElement.muted = true; // Mute video to prevent fullscreen on mobile
                 videoElement.playsinline = true; // Prevents fullscreen on iOS
-                videoContainer.appendChild(videoElement);
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'video-wrapper';
+
+                const overlay = document.createElement('div');
+                overlay.className = 'overlay';
+                overlay.style.backgroundImage = `url(${randomVideo.replace('.mp4', '.png')})`;
+
+                wrapper.appendChild(videoElement);
+                wrapper.appendChild(overlay);
+                videoContainer.appendChild(wrapper);
+
+                // Fade in the overlay after 2 seconds
+                setTimeout(() => {
+                    overlay.style.opacity = 1;
+                }, 2000);
+
                 adjustVideoSizes(); // Adjust sizes when a new video is added
             } else if (event.key === ' ') {
                 const newlineElement = document.createElement('div');
@@ -141,12 +176,19 @@
             const containerHeight = videoContainer.clientHeight;
 
             const videoCount = videos.length;
-            const baseSize = Math.min(containerWidth, containerHeight) ;
+            const baseSize = Math.min(containerWidth, containerHeight);
             const sizeStep = Math.max(200, baseSize / Math.ceil(Math.sqrt(videoCount)));
 
             videos.forEach((video) => {
                 video.style.width = `${sizeStep}px`;
                 video.style.height = `${sizeStep}px`;
+            });
+
+            // Update overlay size to match video size
+            const overlays = videoContainer.querySelectorAll('.overlay');
+            overlays.forEach((overlay) => {
+                overlay.style.width = `${sizeStep}px`;
+                overlay.style.height = `${sizeStep}px`;
             });
         }
 
