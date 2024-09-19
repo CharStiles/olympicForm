@@ -25,19 +25,31 @@
         }
 
         h1 {
-            text-align: center;
-            margin-bottom: 20px;
+            position: absolute; /* Position relative to its nearest positioned ancestor (body) */
+            top: 1%; /* 10% from the top of the parent element */
+            left: 50%; /* Center horizontally */
+            transform: translateX(-50%); /* Adjust horizontal centering */
+            margin: 0; /* Remove default margin */
+
             font-family: 'Paris2024', sans-serif;
             font-size: 36px;
         }
-
-        .video-container {
+        h3 {
+        height: 40px; /* Set a fixed height */
+        margin: 0; /* Ensure no extra spacing affects layout */
+    }
+    .hidden {
+    visibility: hidden; /* Hide content */
+    height: 0; /* Set height to zero to avoid occupying space */
+    margin: 0; /* Ensure no margin collapse */
+    padding: 0; /* Remove padding if necessary */
+}
+.video-container {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             /* gap: 20px; Space between videos */
             width: 100%;
-            height: 80vh; /* Adjust height as needed */
             overflow: hidden;
             /* filter: drop-shadow(16px 16px 10px white) ; */
             margin-left: -15%; 
@@ -47,7 +59,7 @@
         .video-wrapper {
             position: relative;
             display: inline-block;
-            overflow: hidden;
+            overflow: hidden;    
            
         }
 
@@ -99,6 +111,7 @@
     justify-content: center;
     text-align: center;
     text-transform: uppercase;
+    margin-right: 15%;
 }
 
         .overlay {
@@ -141,6 +154,8 @@
 </head>
 <body>
     <h1>Olympic Form</h1>
+    <h3 id="subtitle">(start typing!)</h3>
+
     <input type="text" id="hiddenInput" autofocus />
     <div class="video-container" id="videoContainer"></div>
 
@@ -178,13 +193,18 @@
 
         const videoContainer = document.getElementById('videoContainer');
         const hiddenInput = document.getElementById('hiddenInput');
+        const h2Element = document.getElementById('subtitle');
 
         // Focus the input field on page load
         hiddenInput.focus();
 
         document.addEventListener('keydown', function(event) {
             const key = event.key.toLowerCase();
+            h2Element.classList.add('hidden');
 
+            //h2Element.innerHTML = '&nbsp;';
+            //h2Element.style.visibility = "hidden"
+            // h2Element.classList.add('invisible');
             if (videoFiles[key]) {
                 const videos = videoFiles[key];
                 const randomVideo = videos[Math.floor(Math.random() * videos.length)];
