@@ -260,6 +260,9 @@
                 if (videoContainer.lastChild) {
                     videoContainer.removeChild(videoContainer.lastChild);
                     adjustVideoSizes(); // Adjust sizes when a video is removed
+                    if (videoContainer.children.length === 0) {
+                        h2Element.classList.remove('hidden'); // Make h2Element visible
+                    }
                 }
             }
         });
