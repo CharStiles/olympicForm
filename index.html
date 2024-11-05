@@ -302,23 +302,22 @@
             }
         }
 
+        // Main keydown handler for typing
         document.addEventListener('keydown', function(event) {
             const key = event.key.toLowerCase();
             
             // Reset the inactivity timer on any keypress
             resetInactivityTimer();
             
-            if (!isUserTyping) {
+            // Only set isUserTyping to true if a valid letter key is pressed
+            if (videoFiles[key]) {
                 isUserTyping = true;
+                h2Element.classList.add('hidden');
                 
                 const demoVideos = document.querySelectorAll('.demo-wrapper');
                 if (demoVideos.length > 0) {
                     demoVideos.forEach(video => video.remove());
                 }
-            }
-
-            if (videoFiles[key]) {
-                h2Element.classList.add('hidden');
             }
 
             if (videoFiles[key]) {
@@ -365,16 +364,21 @@
             }
         });
 
+        // Backspace handler
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Backspace') {
-                if (videoContainer.lastChild) {
-                    videoContainer.removeChild(videoContainer.lastChild);
-                    adjustVideoSizes();
-                    
-                    if (videoContainer.children.length === 0) {
-                        h2Element.classList.remove('hidden');
-                        isUserTyping = false;
-                        createStartTypingAnimation();
+                // Only delete if user is actively typing (not in demo mode)
+                if (videoContainer.lastChild && isUserTyping && h2Element.classList.contains('hidden')) {
+                    const lastChild = videoContainer.lastChild;
+                    if (!lastChild.classList.contains('demo-wrapper')) {
+                        videoContainer.removeChild(lastChild);
+                        adjustVideoSizes();
+                        
+                        if (videoContainer.children.length === 0) {
+                            h2Element.classList.remove('hidden');
+                            isUserTyping = false;
+                            createStartTypingAnimation();
+                        }
                     }
                 }
             }
