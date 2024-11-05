@@ -150,13 +150,29 @@
             top: -100px;
             opacity: 0;
         }
+
+        .demo-wrapper {
+            pointer-events: none; /* Keep this to prevent interaction with demo videos */
+        }
+
+        .demo-wrapper video,
+        .demo-wrapper .overlay,
+        .demo-wrapper .letter {
+            opacity: 0.5;
+        }
+
+        #videoContainer {
+            position: relative;
+            min-height: 200px; /* Ensure container has height even when empty */
+        }
     </style>
 </head>
 <body>
     <h1>Olympic Form</h1>
-    <h3 id="subtitle">(start typing!)</h3>
+    <!-- <h3 id="subtitle">(start typing!)</h3> -->
 
-    <input type="text" id="hiddenInput" autofocus />
+    <h2 id="startTyping">Start typing!</h2>
+        <input type="text" id="hiddenInput" autofocus />
     <div class="video-container" id="videoContainer"></div>
 
     <script>
@@ -193,18 +209,118 @@
 
         const videoContainer = document.getElementById('videoContainer');
         const hiddenInput = document.getElementById('hiddenInput');
-        const h2Element = document.getElementById('subtitle');
+        const h2Element = document.getElementById('startTyping');
 
         // Focus the input field on page load
         hiddenInput.focus();
 
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        let isUserTyping = false;
+
+        let inactivityTimer;
+        const INACTIVITY_TIMEOUT = 30000; // 1 minute in milliseconds
+
+        async function resetToDemo() {
+            // Remove all existing content one by one
+            while (videoContainer.children.length > 0) {
+                videoContainer.removeChild(videoContainer.lastChild);
+                await sleep(100);
+            }
+            
+            // Reset states
+            isUserTyping = false;
+            h2Element.classList.remove('hidden');
+            
+            // Start demo animation
+            createStartTypingAnimation();
+        }
+
+        function resetInactivityTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(resetToDemo, INACTIVITY_TIMEOUT);
+        }
+
+        async function createStartTypingAnimation() {
+            while (videoContainer.children.length === 0 && !isUserTyping) {
+                const text = "start typing!";
+                for (let i = 0; i < text.length; i++) {
+                    if (isUserTyping) return;
+                    const letter = text[i];
+
+                    if (videoFiles[letter] || letter === ' ') {
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'video-wrapper demo-wrapper';
+
+                        if (letter === ' ') {
+                            wrapper.style.width = '200px';
+                        } else {
+                            const videos = videoFiles[letter];
+                            const randomVideo = videos[Math.floor(Math.random() * videos.length)];
+                            const videoElement = document.createElement('video');
+                            videoElement.src = randomVideo;
+                            videoElement.autoplay = true;
+                            videoElement.controls = false;
+                            videoElement.loop = false;
+                            videoElement.muted = true;
+                            videoElement.playsinline = true;
+
+                            const overlay = document.createElement('div');
+                            overlay.className = 'overlay';
+                            overlay.style.backgroundImage = `url(${randomVideo.replace('.mp4', '.png')})`;
+
+                            const letterElement = document.createElement('div');
+                            letterElement.className = 'letter';
+                            letterElement.textContent = letter;
+
+                            wrapper.appendChild(videoElement);
+                            wrapper.appendChild(overlay);
+                            wrapper.appendChild(letterElement);
+
+                            setTimeout(() => {
+                                overlay.style.opacity = 1;
+                            }, 2000);
+                        }
+
+                        videoContainer.appendChild(wrapper);
+                        adjustVideoSizes();
+                        await sleep(400);
+                    }
+                }
+
+                await sleep(5000);
+
+                while (videoContainer.children.length > 0 && !isUserTyping) {
+                    if (isUserTyping) return;
+                    videoContainer.removeChild(videoContainer.lastChild);
+                    await sleep(100);
+                }
+
+                await sleep(1000);
+            }
+        }
+
         document.addEventListener('keydown', function(event) {
             const key = event.key.toLowerCase();
-            h2Element.classList.add('hidden');
+            
+            // Reset the inactivity timer on any keypress
+            resetInactivityTimer();
+            
+            if (!isUserTyping) {
+                isUserTyping = true;
+                
+                const demoVideos = document.querySelectorAll('.demo-wrapper');
+                if (demoVideos.length > 0) {
+                    demoVideos.forEach(video => video.remove());
+                }
+            }
 
-            //h2Element.innerHTML = '&nbsp;';
-            //h2Element.style.visibility = "hidden"
-            // h2Element.classList.add('invisible');
+            if (videoFiles[key]) {
+                h2Element.classList.add('hidden');
+            }
+
             if (videoFiles[key]) {
                 const videos = videoFiles[key];
                 const randomVideo = videos[Math.floor(Math.random() * videos.length)];
@@ -223,13 +339,8 @@
                 overlay.className = 'overlay';
                 overlay.style.backgroundImage = `url(${randomVideo.replace('.mp4', '.png')})`;
 
-                // const overlay2 = document.createElement('div');
-                // overlay2.className = 'overlay2';
-                // overlay2.style.backgroundImage = `url(${randomVideo.replace('.mp4', '.png')})`;
-
                 wrapper.appendChild(videoElement);
                 wrapper.appendChild(overlay);
-                // wrapper.appendChild(overlay2);
 
                 const letterElement = document.createElement('div');
                 letterElement.className = 'letter';
@@ -238,12 +349,11 @@
 
                 videoContainer.appendChild(wrapper);
 
-                // Fade in the overlay after 2 seconds
                 setTimeout(() => {
                     overlay.style.opacity = 1;
                 }, 2000);
 
-                adjustVideoSizes(); // Adjust sizes when a new video is added
+                adjustVideoSizes();
             } else if (event.key === ' ') {
                 const newlineElement = document.createElement('div');
                 newlineElement.className = 'newline';
@@ -259,9 +369,12 @@
             if (event.key === 'Backspace') {
                 if (videoContainer.lastChild) {
                     videoContainer.removeChild(videoContainer.lastChild);
-                    adjustVideoSizes(); // Adjust sizes when a video is removed
+                    adjustVideoSizes();
+                    
                     if (videoContainer.children.length === 0) {
-                        h2Element.classList.remove('hidden'); // Make h2Element visible
+                        h2Element.classList.remove('hidden');
+                        isUserTyping = false;
+                        createStartTypingAnimation();
                     }
                 }
             }
@@ -300,7 +413,15 @@ function adjustVideoSizes() {
         // Scroll to bottom on page load
         window.onload = function() {
             window.scrollTo(0, document.body.scrollHeight);
+            if (videoContainer.children.length === 0) {
+                createStartTypingAnimation();
+            }
+            resetInactivityTimer();
         };
+
+        // Optional: Reset timer on mouse movement and touches as well
+        document.addEventListener('mousemove', resetInactivityTimer);
+        document.addEventListener('touchstart', resetInactivityTimer);
     </script>
 </body>
 </html>
