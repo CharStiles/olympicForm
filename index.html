@@ -71,9 +71,7 @@
             object-position: center;
             margin-left: -15%; 
             margin-right: -15%;
-            /* Add any visual effects directly to video if needed */
-            filter: blur(3px);
-            -webkit-filter: blur(3px);
+
         }
 
         .overlay2{
@@ -169,6 +167,20 @@
             position: relative;
             min-height: 200px; /* Ensure container has height even when empty */
         }
+
+        #debugDisplay {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            font-family: monospace;
+            max-width: 80%;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
@@ -178,6 +190,8 @@
     <!-- <h2 id="startTyping">Start typing!</h2> -->
         <input type="text" id="hiddenInput" autofocus />
     <div class="video-container" id="videoContainer"></div>
+
+    <div id="debugDisplay"></div>
 
     <script>
         const videoFiles = {
@@ -353,6 +367,31 @@
                 const randomVideoSrc = videos[randomIndex];
                 
                 const videoElement = document.createElement('video');
+                
+                videoElement.onerror = function() {
+                    logDebug(`Error loading video: ${randomVideoSrc}`);
+                    if (videoElement.error) {
+                        logDebug(`Error code: ${videoElement.error.code}`);
+                    }
+                };
+
+                videoElement.onloadstart = function() {
+                    logDebug(`Started loading: ${randomVideoSrc}`);
+                };
+
+                videoElement.oncanplay = function() {
+                    logDebug(`Can play: ${randomVideoSrc}`);
+                };
+
+                videoElement.onplay = function() {
+                    logDebug(`Playing: ${randomVideoSrc}`);
+                };
+
+                videoElement.onended = function() {
+                    logDebug(`Ended: ${randomVideoSrc}`);
+                };
+
+                // Set source after adding event listeners
                 videoElement.src = randomVideoSrc;
                 videoElement.autoplay = true;
                 videoElement.controls = false;
@@ -361,10 +400,9 @@
                 videoElement.playsinline = true;
                 videoElement.setAttribute('webkit-playsinline', 'true');
                 
-                videoElement.onended = function() {
-                    resetInactivityTimer();
-                };
-
+                logDebug(`Set src to: ${randomVideoSrc}`);
+                videoElement.load();
+                
                 const wrapper = document.createElement('div');
                 wrapper.className = 'video-wrapper';
 
@@ -376,6 +414,16 @@
                 wrapper.appendChild(letterElement);
 
                 videoContainer.appendChild(wrapper);
+                
+                const playPromise = videoElement.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        logDebug(`Play promise resolved for: ${randomVideoSrc}`);
+                    }).catch(error => {
+                        logDebug(`Play failed: ${error}`);
+                    });
+                }
+
                 adjustVideoSizes();
             } else if (event.key === ' ') {
                 const newlineElement = document.createElement('div');
@@ -440,6 +488,10 @@ function adjustVideoSizes() {
 
         // Scroll to bottom on page load
         window.onload = function() {
+            const testVideo = document.createElement('video');
+            logDebug(`Can play WebM: ${testVideo.canPlayType('video/webm')}`);
+            logDebug(`Can play MP4: ${testVideo.canPlayType('video/mp4')}`);
+            
             window.scrollTo(0, document.body.scrollHeight);
             if (videoContainer.children.length === 0) {
                 createStartTypingAnimation();
@@ -458,6 +510,19 @@ function adjustVideoSizes() {
             if (video) {
                 video.pause();
                 video.src = '';
+            }
+        }
+
+        // Add debug display function
+        function logDebug(message) {
+            const debugDisplay = document.getElementById('debugDisplay');
+            const timestamp = new Date().toLocaleTimeString();
+            debugDisplay.innerHTML = `${timestamp}: ${message}<br>` + debugDisplay.innerHTML;
+            
+            // Keep only last 10 messages
+            const messages = debugDisplay.innerHTML.split('<br>');
+            if (messages.length > 10) {
+                debugDisplay.innerHTML = messages.slice(0, 10).join('<br>');
             }
         }
     </script>
