@@ -64,17 +64,21 @@
         }
 
         video {
-    /* width: 10%; Reduces the width by 1/5th (20%) */
-    height: auto;
-    border: none;
-    object-fit: cover; /* Crops from the center */
-    object-position: center; /* Ensures the cropping is centered */
-    margin-left: -15%; 
-    margin-right: -15%
-}
-.overlay2{
+            width: auto;
+            height: auto;
+            border: none;
+            object-fit: cover;
+            object-position: center;
+            margin-left: -15%; 
+            margin-right: -15%;
+            /* Add any visual effects directly to video if needed */
+            filter: blur(3px);
+            -webkit-filter: blur(3px);
+        }
 
-    position: absolute;
+        .overlay2{
+
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
@@ -93,26 +97,26 @@
             margin-right: -15%;
 
 
-    opacity: 0;
+            opacity: 0;
 
             -moz-filter: blur(3px);
             -o-filter: blur(3px);
             -ms-filter: blur(3px);
-    -webkit-filter:blur(3px) drop-shadow(1px 1px 0 red) drop-shadow(-1px -1px 0 red);
-    filter:blur(3px) drop-shadow(1px 1px 0 red) drop-shadow(-1px -1px 0 red);
-}
+            -webkit-filter:blur(3px) drop-shadow(1px 1px 0 red) drop-shadow(-1px -1px 0 red);
+            filter:blur(3px) drop-shadow(1px 1px 0 red) drop-shadow(-1px -1px 0 red);
+        }
 
-.letter {
-    margin-top: 1px;
-    font-family: 'Paris2024', sans-serif;
-    font-size: 24px;
-    color: #fff;
-    display: flex;
-    justify-content: center;
-    text-align: center;
-    text-transform: uppercase;
-    margin-right: 15%;
-}
+        .letter {
+            margin-top: 1px;
+            font-family: 'Paris2024', sans-serif;
+            font-size: 24px;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            text-align: center;
+            text-transform: uppercase;
+            margin-right: 15%;
+        }
 
         .overlay {
             position: absolute;
@@ -177,34 +181,34 @@
 
     <script>
         const videoFiles = {
-            '_': ['__cropped.mp4'],
-            '~': ['~_cropped.mp4'],
-            'a': ['a_cropped.mp4'],
-            'b': ['b_2_cropped.mp4', 'b_cropped.mp4'],
-            'c': ['c_2_cropped.mp4', 'c_cropped.mp4'],
-            'd': ['d_2_cropped.mp4', 'd_cropped.mp4'],
-            'e': ['e_cropped.mp4'],
-            'f': ['f_cropped.mp4'],
-            'g': ['g_cropped.mp4'],
-            'h': ['h_2_cropped.mp4', 'h_cropped.mp4'],
-            'i': ['i_2_cropped.mp4', 'i_cropped.mp4'],
-            'j': ['j_cropped.mp4'],
-            'k': ['k_cropped.mp4'],
-            'l': ['l_2_cropped.mp4', 'l_cropped.mp4'],
-            'm': ['m_cropped.mp4'],
-            'n': ['n_cropped.mp4'],
-            'o': ['o_cropped.mp4'],
-            'p': ['p_cropped.mp4'],
-            'q': ['q_2_cropped.mp4', 'q_cropped.mp4'],
-            'r': ['r_2_cropped.mp4', 'r_cropped.mp4'],
-            's': ['s_2_cropped.mp4', 's_cropped.mp4'],
-            't': ['t_cropped.mp4'],
-            'u': ['u_2_cropped.mp4', 'u_cropped.mp4'],
-            'v': ['v_2_cropped.mp4', 'v_cropped.mp4'],
-            'w': ['w_cropped.mp4'],
-            'x': ['x_2_cropped.mp4', 'x_cropped.mp4'],
-            'y': ['y_2_cropped.mp4', 'y_cropped.mp4'],
-            'z': ['z_cropped.mp4']
+            '_': ['__cropped.webm'],
+            '~': ['~_cropped.webm'],
+            'a': ['a_cropped.webm'],
+            'b': ['b_2_cropped.webm', 'b_cropped.webm'],
+            'c': ['c_2_cropped.webm', 'c_cropped.webm'],
+            'd': ['d_2_cropped.webm', 'd_cropped.webm'],
+            'e': ['e_cropped.webm'],
+            'f': ['f_cropped.webm'],
+            'g': ['g_cropped.webm'],
+            'h': ['h_2_cropped.webm', 'h_cropped.webm'],
+            'i': ['i_2_cropped.webm', 'i_cropped.webm'],
+            'j': ['j_cropped.webm'],
+            'k': ['k_cropped.webm'],
+            'l': ['l_2_cropped.webm', 'l_cropped.webm'],
+            'm': ['m_cropped.webm'],
+            'n': ['n_cropped.webm'],
+            'o': ['o_cropped.webm'],
+            'p': ['p_cropped.webm'],
+            'q': ['q_2_cropped.webm', 'q_cropped.webm'],
+            'r': ['r_2_cropped.webm', 'r_cropped.webm'],
+            's': ['s_2_cropped.webm', 's_cropped.webm'],
+            't': ['t_cropped.webm'],
+            'u': ['u_2_cropped.webm', 'u_cropped.webm'],
+            'v': ['v_2_cropped.webm', 'v_cropped.webm'],
+            'w': ['w_cropped.webm'],
+            'x': ['x_2_cropped.webm', 'x_cropped.webm'],
+            'y': ['y_2_cropped.webm', 'y_cropped.webm'],
+            'z': ['z_cropped.webm']
         };
 
         const videoContainer = document.getElementById('videoContainer');
@@ -269,7 +273,7 @@
 
                             const overlay = document.createElement('div');
                             overlay.className = 'overlay';
-                            overlay.style.backgroundImage = `url(${randomVideo.replace('.mp4', '.png')})`;
+                            overlay.style.backgroundImage = `url(${randomVideo.replace('.webm', '.png')})`;
 
                             const letterElement = document.createElement('div');
                             letterElement.className = 'letter';
@@ -358,22 +362,13 @@
                 videoElement.setAttribute('webkit-playsinline', 'true');
                 
                 videoElement.onended = function() {
-                    const overlay = this.nextElementSibling;
-                    if (overlay) {
-                        overlay.style.opacity = '1';
-                    }
                     resetInactivityTimer();
                 };
 
                 const wrapper = document.createElement('div');
                 wrapper.className = 'video-wrapper';
 
-                const overlay = document.createElement('div');
-                overlay.className = 'overlay';
-                overlay.style.backgroundImage = `url(${randomVideoSrc.replace('.mp4', '.png')})`;
-
                 wrapper.appendChild(videoElement);
-                wrapper.appendChild(overlay);
 
                 const letterElement = document.createElement('div');
                 letterElement.className = 'letter';
