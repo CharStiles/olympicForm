@@ -194,35 +194,36 @@
     <div id="debugDisplay"></div>
 
     <script>
+        // Update video files to use MP4 instead of WebM
         const videoFiles = {
-            '_': ['__cropped.webm'],
-            '~': ['~_cropped.webm'],
-            'a': ['a_cropped.webm'],
-            'b': ['b_2_cropped.webm', 'b_cropped.webm'],
-            'c': ['c_2_cropped.webm', 'c_cropped.webm'],
-            'd': ['d_2_cropped.webm', 'd_cropped.webm'],
-            'e': ['e_cropped.webm'],
-            'f': ['f_cropped.webm'],
-            'g': ['g_cropped.webm'],
-            'h': ['h_2_cropped.webm', 'h_cropped.webm'],
-            'i': ['i_2_cropped.webm', 'i_cropped.webm'],
-            'j': ['j_cropped.webm'],
-            'k': ['k_cropped.webm'],
-            'l': ['l_2_cropped.webm', 'l_cropped.webm'],
-            'm': ['m_cropped.webm'],
-            'n': ['n_cropped.webm'],
-            'o': ['o_cropped.webm'],
-            'p': ['p_cropped.webm'],
-            'q': ['q_2_cropped.webm', 'q_cropped.webm'],
-            'r': ['r_2_cropped.webm', 'r_cropped.webm'],
-            's': ['s_2_cropped.webm', 's_cropped.webm'],
-            't': ['t_cropped.webm'],
-            'u': ['u_2_cropped.webm', 'u_cropped.webm'],
-            'v': ['v_2_cropped.webm', 'v_cropped.webm'],
-            'w': ['w_cropped.webm'],
-            'x': ['x_2_cropped.webm', 'x_cropped.webm'],
-            'y': ['y_2_cropped.webm', 'y_cropped.webm'],
-            'z': ['z_cropped.webm']
+            '_': ['__cropped.mp4'],
+            '~': ['~_cropped.mp4'],
+            'a': ['a_cropped.mp4'],
+            'b': ['b_2_cropped.mp4', 'b_cropped.mp4'],
+            'c': ['c_2_cropped.mp4', 'c_cropped.mp4'],
+            'd': ['d_2_cropped.mp4', 'd_cropped.mp4'],
+            'e': ['e_cropped.mp4'],
+            'f': ['f_cropped.mp4'],
+            'g': ['g_cropped.mp4'],
+            'h': ['h_2_cropped.mp4', 'h_cropped.mp4'],
+            'i': ['i_2_cropped.mp4', 'i_cropped.mp4'],
+            'j': ['j_cropped.mp4'],
+            'k': ['k_cropped.mp4'],
+            'l': ['l_2_cropped.mp4', 'l_cropped.mp4'],
+            'm': ['m_cropped.mp4'],
+            'n': ['n_cropped.mp4'],
+            'o': ['o_cropped.mp4'],
+            'p': ['p_cropped.mp4'],
+            'q': ['q_2_cropped.mp4', 'q_cropped.mp4'],
+            'r': ['r_2_cropped.mp4', 'r_cropped.mp4'],
+            's': ['s_2_cropped.mp4', 's_cropped.mp4'],
+            't': ['t_cropped.mp4'],
+            'u': ['u_2_cropped.mp4', 'u_cropped.mp4'],
+            'v': ['v_2_cropped.mp4', 'v_cropped.mp4'],
+            'w': ['w_cropped.mp4'],
+            'x': ['x_2_cropped.mp4', 'x_cropped.mp4'],
+            'y': ['y_2_cropped.mp4', 'y_cropped.mp4'],
+            'z': ['z_cropped.mp4']
         };
 
         const videoContainer = document.getElementById('videoContainer');
@@ -287,7 +288,7 @@
 
                             const overlay = document.createElement('div');
                             overlay.className = 'overlay';
-                            overlay.style.backgroundImage = `url(${randomVideo.replace('.webm', '.png')})`;
+                            overlay.style.backgroundImage = `url(${randomVideo.replace('.mp4', '.png')})`;
 
                             const letterElement = document.createElement('div');
                             letterElement.className = 'letter';
@@ -362,6 +363,7 @@
             }
 
             if (videoFiles[key]) {
+                logDebug(`Creating video for key: ${key}`);
                 const videos = videoFiles[key];
                 const randomIndex = Math.floor(Math.random() * videos.length);
                 const randomVideoSrc = videos[randomIndex];
@@ -372,6 +374,11 @@
                     logDebug(`Error loading video: ${randomVideoSrc}`);
                     if (videoElement.error) {
                         logDebug(`Error code: ${videoElement.error.code}`);
+                        // Try to recover by reloading the video
+                        setTimeout(() => {
+                            videoElement.load();
+                            videoElement.play().catch(e => logDebug(`Retry failed: ${e}`));
+                        }, 100);
                     }
                 };
 
@@ -381,24 +388,21 @@
 
                 videoElement.oncanplay = function() {
                     logDebug(`Can play: ${randomVideoSrc}`);
+                    // Try to play as soon as we can
+                    videoElement.play().catch(e => logDebug(`Play failed after canplay: ${e}`));
                 };
 
-                videoElement.onplay = function() {
-                    logDebug(`Playing: ${randomVideoSrc}`);
-                };
-
-                videoElement.onended = function() {
-                    logDebug(`Ended: ${randomVideoSrc}`);
-                };
-
-                // Set source after adding event listeners
-                videoElement.src = randomVideoSrc;
+                // Set video attributes before source
                 videoElement.autoplay = true;
                 videoElement.controls = false;
                 videoElement.loop = false;
                 videoElement.muted = true;
                 videoElement.playsinline = true;
                 videoElement.setAttribute('webkit-playsinline', 'true');
+                
+                // Set source and type explicitly
+                videoElement.src = randomVideoSrc;
+                videoElement.type = 'video/mp4';
                 
                 logDebug(`Set src to: ${randomVideoSrc}`);
                 videoElement.load();
@@ -415,15 +419,16 @@
 
                 videoContainer.appendChild(wrapper);
                 
-                const playPromise = videoElement.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        logDebug(`Play promise resolved for: ${randomVideoSrc}`);
-                    }).catch(error => {
+                // Try to play with retry logic
+                const playVideo = () => {
+                    videoElement.play().catch(error => {
                         logDebug(`Play failed: ${error}`);
+                        // Retry once after a short delay
+                        setTimeout(playVideo, 100);
                     });
-                }
-
+                };
+                
+                playVideo();
                 adjustVideoSizes();
             } else if (event.key === ' ') {
                 const newlineElement = document.createElement('div');
