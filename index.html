@@ -168,10 +168,10 @@
     </style>
 </head>
 <body>
-    <h1>Olympic Form</h1>
+    <h1 id="startTyping">Start typing!</h1>
     <!-- <h3 id="subtitle">(start typing!)</h3> -->
 
-    <h2 id="startTyping">Start typing!</h2>
+    <!-- <h2 id="startTyping">Start typing!</h2> -->
         <input type="text" id="hiddenInput" autofocus />
     <div class="video-container" id="videoContainer"></div>
 
@@ -302,6 +302,21 @@
             }
         }
 
+        // Add video cache at the beginning of your script
+        const videoCache = {};
+
+        // Preload videos
+        function preloadVideos() {
+            for (const letter in videoFiles) {
+                videoCache[letter] = videoFiles[letter].map(videoSrc => {
+                    const video = document.createElement('video');
+                    video.src = videoSrc;
+                    video.load();
+                    return video;
+                });
+            }
+        }
+
         // Main keydown handler for typing
         document.addEventListener('keydown', function(event) {
             const key = event.key.toLowerCase();
@@ -322,21 +337,30 @@
 
             if (videoFiles[key]) {
                 const videos = videoFiles[key];
-                const randomVideo = videos[Math.floor(Math.random() * videos.length)];
-                const videoElement = document.createElement('video');
-                videoElement.src = randomVideo;
+                const randomIndex = Math.floor(Math.random() * videos.length);
+                const randomVideoSrc = videos[randomIndex];
+                
+                // Use cached video or create new one
+                let videoElement;
+                if (videoCache[key] && videoCache[key][randomIndex]) {
+                    videoElement = videoCache[key][randomIndex].cloneNode(true);
+                } else {
+                    videoElement = document.createElement('video');
+                    videoElement.src = randomVideoSrc;
+                }
+
                 videoElement.autoplay = true;
                 videoElement.controls = false;
                 videoElement.loop = false;
-                videoElement.muted = true; // Mute video to prevent fullscreen on mobile
-                videoElement.playsinline = true; // Prevents fullscreen on iOS
+                videoElement.muted = true;
+                videoElement.playsinline = true;
 
                 const wrapper = document.createElement('div');
                 wrapper.className = 'video-wrapper';
 
                 const overlay = document.createElement('div');
                 overlay.className = 'overlay';
-                overlay.style.backgroundImage = `url(${randomVideo.replace('.mp4', '.png')})`;
+                overlay.style.backgroundImage = `url(${randomVideoSrc.replace('.mp4', '.png')})`;
 
                 wrapper.appendChild(videoElement);
                 wrapper.appendChild(overlay);
@@ -367,10 +391,10 @@
         // Backspace handler
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Backspace') {
-                // Only delete if user is actively typing (not in demo mode)
                 if (videoContainer.lastChild && isUserTyping && h2Element.classList.contains('hidden')) {
                     const lastChild = videoContainer.lastChild;
                     if (!lastChild.classList.contains('demo-wrapper')) {
+                        cleanupVideo(lastChild);
                         videoContainer.removeChild(lastChild);
                         adjustVideoSizes();
                         
@@ -421,11 +445,22 @@ function adjustVideoSizes() {
                 createStartTypingAnimation();
             }
             resetInactivityTimer();
+            preloadVideos();
         };
 
         // Optional: Reset timer on mouse movement and touches as well
         document.addEventListener('mousemove', resetInactivityTimer);
         document.addEventListener('touchstart', resetInactivityTimer);
+
+        // Add cleanup function
+        function cleanupVideo(videoWrapper) {
+            const video = videoWrapper.querySelector('video');
+            if (video) {
+                video.pause();
+                video.src = '';
+                video.load();
+            }
+        }
     </script>
 </body>
 </html>
