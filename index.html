@@ -84,7 +84,7 @@
             background-position: center;
            
             /* opacity: 0; */
-            transition: opacity 2.5s ease-in-out;
+            transition: none;
             overflow: hidden;
    
             /* margin: 0 -5%; */
@@ -125,7 +125,7 @@
             background-position: center;
             mix-blend-mode: multiply;
             opacity: 0;
-            transition: opacity 2s ease-in-out;
+            transition: none;
             overflow: hidden;
             filter: blur(3px) ;
             -webkit-filter: blur(3px);
@@ -221,7 +221,7 @@
         let isUserTyping = false;
 
         let inactivityTimer;
-        const INACTIVITY_TIMEOUT = 30000; // 1 minute in milliseconds
+        const INACTIVITY_TIMEOUT = 15000; // 15 sec in milliseconds
 
         async function resetToDemo() {
             // Remove all existing content one by one
@@ -318,7 +318,7 @@
         }
 
         // Add this constant at the top of your script
-        const MAX_LETTERS = 24;
+        const MAX_LETTERS = 27;
 
         // Modify the main keydown handler
         document.addEventListener('keydown', function(event) {
@@ -348,20 +348,22 @@
                 const randomIndex = Math.floor(Math.random() * videos.length);
                 const randomVideoSrc = videos[randomIndex];
                 
-                // Use cached video or create new one
-                let videoElement;
-                if (videoCache[key] && videoCache[key][randomIndex]) {
-                    videoElement = videoCache[key][randomIndex].cloneNode(true);
-                } else {
-                    videoElement = document.createElement('video');
-                    videoElement.src = randomVideoSrc;
-                }
-
+                const videoElement = document.createElement('video');
+                videoElement.src = randomVideoSrc;
                 videoElement.autoplay = true;
                 videoElement.controls = false;
                 videoElement.loop = false;
                 videoElement.muted = true;
                 videoElement.playsinline = true;
+                videoElement.setAttribute('webkit-playsinline', 'true');
+                
+                videoElement.onended = function() {
+                    const overlay = this.nextElementSibling;
+                    if (overlay) {
+                        overlay.style.opacity = '1';
+                    }
+                    resetInactivityTimer();
+                };
 
                 const wrapper = document.createElement('div');
                 wrapper.className = 'video-wrapper';
@@ -379,11 +381,6 @@
                 wrapper.appendChild(letterElement);
 
                 videoContainer.appendChild(wrapper);
-
-                setTimeout(() => {
-                    overlay.style.opacity = 1;
-                }, 2000);
-
                 adjustVideoSizes();
             } else if (event.key === ' ') {
                 const newlineElement = document.createElement('div');
@@ -466,7 +463,6 @@ function adjustVideoSizes() {
             if (video) {
                 video.pause();
                 video.src = '';
-                video.load();
             }
         }
     </script>
