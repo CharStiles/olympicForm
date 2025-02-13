@@ -317,12 +317,20 @@
             }
         }
 
-        // Main keydown handler for typing
+        // Add this constant at the top of your script
+        const MAX_LETTERS = 24;
+
+        // Modify the main keydown handler
         document.addEventListener('keydown', function(event) {
             const key = event.key.toLowerCase();
             
             // Reset the inactivity timer on any keypress
             resetInactivityTimer();
+            
+            // Check if we've reached the maximum letters before adding new ones
+            if (videoContainer.children.length >= MAX_LETTERS && videoFiles[key]) {
+                return; // Exit early if max letters reached
+            }
             
             // Only set isUserTyping to true if a valid letter key is pressed
             if (videoFiles[key]) {
