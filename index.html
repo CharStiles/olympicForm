@@ -182,12 +182,10 @@
 
         let isUserTyping = false;
 
-        const INACTIVITY_TIMEOUT_1 = 10000; // 10 seconds
-        const INACTIVITY_TIMEOUT_2 = 20000; // 20 seconds
-        const INACTIVITY_TIMEOUT_3 = 30000; // 30 seconds
-        let inactivityTimer1;
-        let inactivityTimer2;
-        let inactivityTimer3;
+        const INACTIVITY_CHECK_INTERVAL = 1000; // Check every second
+        const INACTIVITY_TIMEOUT = 10000; // 10 seconds until first reset
+        let lastActivityTime;
+        let inactivityInterval;
         let resetAttempts = 0;
 
         // Add counter variable at the top of your script
@@ -205,19 +203,16 @@
                 h2Element.classList.remove('hidden');
                 
                 createStartTypingAnimation();
-                resetAttempts = 0; // Reset attempts counter on success
+                resetAttempts = 0;
             } catch (error) {
                 console.error(`Reset attempt ${attempt} failed:`, error);
-                // If first attempt fails, try a simpler reset
                 if (attempt === 1) {
-                    videoContainer.innerHTML = ''; // Direct clear
+                    videoContainer.innerHTML = '';
                     letterCount = 0;
                     isUserTyping = false;
                     h2Element.classList.remove('hidden');
                     createStartTypingAnimation();
-                }
-                // If second attempt fails, try minimal reset
-                else if (attempt === 2) {
+                } else if (attempt === 2) {
                     videoContainer.innerHTML = '';
                     letterCount = 0;
                     isUserTyping = false;
@@ -225,26 +220,47 @@
             }
         }
 
-        function resetInactivityTimers() {
-            clearTimeout(inactivityTimer1);
-            clearTimeout(inactivityTimer2);
-            clearTimeout(inactivityTimer3);
+        function startInactivityCheck() {
+            // Clear any existing interval
+            if (inactivityInterval) {
+                clearInterval(inactivityInterval);
+            }
             
-            inactivityTimer1 = setTimeout(() => {
-                resetToDemo(1);
-            }, INACTIVITY_TIMEOUT_1);
-
-            inactivityTimer2 = setTimeout(() => {
-                resetToDemo(2);
-            }, INACTIVITY_TIMEOUT_2);
-
-            inactivityTimer3 = setTimeout(() => {
-                // Last resort: force reload the page
-                if (resetAttempts >= 2) {
+            // Set initial activity time
+            lastActivityTime = Date.now();
+            
+            // Start checking for inactivity
+            inactivityInterval = setInterval(() => {
+                const currentTime = Date.now();
+                const timeSinceLastActivity = currentTime - lastActivityTime;
+                
+                if (timeSinceLastActivity >= INACTIVITY_TIMEOUT + 20000) {
+                    // After 30 seconds, reload page
                     window.location.reload();
+                } else if (timeSinceLastActivity >= INACTIVITY_TIMEOUT + 10000) {
+                    // After 20 seconds, try second reset
+                    resetToDemo(2);
+                } else if (timeSinceLastActivity >= INACTIVITY_TIMEOUT) {
+                    // After 10 seconds, try first reset
+                    resetToDemo(1);
                 }
-            }, INACTIVITY_TIMEOUT_3);
+            }, INACTIVITY_CHECK_INTERVAL);
         }
+
+        function resetActivityTimer() {
+            lastActivityTime = Date.now();
+        }
+
+        // Initialize the inactivity check on page load
+        window.addEventListener('load', () => {
+            startInactivityCheck();
+            resetActivityTimer();
+        });
+
+        // Update all event listeners to use resetActivityTimer
+        document.addEventListener('mousemove', resetActivityTimer);
+        document.addEventListener('touchstart', resetActivityTimer);
+        document.addEventListener('keydown', resetActivityTimer);
 
         async function createStartTypingAnimation() {
             while (videoContainer.children.length === 0 && !isUserTyping) {
@@ -327,7 +343,7 @@
         document.addEventListener('keydown', function(event) {
             const key = event.key.toLowerCase();
             
-            resetInactivityTimers();
+            resetActivityTimer();
             
             if (key === ' ') {
                 const nextMultiple = Math.ceil(letterCount / 9) * 9;
@@ -449,12 +465,7 @@ function adjustVideoSizes() {
             if (videoContainer.children.length === 0) {
                 createStartTypingAnimation();
             }
-            resetInactivityTimers();
         };
-
-        // Optional: Reset timer on mouse movement and touches as well
-        document.addEventListener('mousemove', resetInactivityTimers);
-        document.addEventListener('touchstart', resetInactivityTimers);
 
         // Add cleanup function
         function cleanupVideo(videoWrapper) {
