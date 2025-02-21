@@ -182,89 +182,35 @@
 
         let isUserTyping = false;
 
-        const INACTIVITY_CHECK_INTERVAL = 1000; // Check every second
-        const INACTIVITY_TIMEOUT = 10000; // 10 seconds until first reset
-        let lastActivityTime;
-        let inactivityInterval;
-        let resetAttempts = 0;
+        let inactivityTimer;
+        const INACTIVITY_TIMEOUT = 10000; // 15 sec in milliseconds
 
         // Add counter variable at the top of your script
         let letterCount = 0;
 
-        async function resetToDemo(attempt = 1) {
-            try {
-                while (videoContainer.children.length > 0) {
-                    videoContainer.removeChild(videoContainer.lastChild);
-                    await sleep(100);
-                }
-                
-                letterCount = 0;
-                isUserTyping = false;
-                h2Element.classList.remove('hidden');
-                
-                createStartTypingAnimation();
-                resetAttempts = 0;
-            } catch (error) {
-                console.error(`Reset attempt ${attempt} failed:`, error);
-                if (attempt === 1) {
-                    videoContainer.innerHTML = '';
-                    letterCount = 0;
-                    isUserTyping = false;
-                    h2Element.classList.remove('hidden');
-                    createStartTypingAnimation();
-                } else if (attempt === 2) {
-                    videoContainer.innerHTML = '';
-                    letterCount = 0;
-                    isUserTyping = false;
-                }
-            }
-        }
-
-        function startInactivityCheck() {
-            // Clear any existing interval
-            if (inactivityInterval) {
-                clearInterval(inactivityInterval);
+        async function resetToDemo() {
+            while (videoContainer.children.length > 0) {
+                videoContainer.removeChild(videoContainer.lastChild);
+                await sleep(100);
             }
             
-            // Set initial activity time
-            lastActivityTime = Date.now();
+            letterCount = 0; // Reset counter
+            isUserTyping = false;
+            h2Element.classList.remove('hidden');
             
-            // Start checking for inactivity
-            inactivityInterval = setInterval(() => {
-                const currentTime = Date.now();
-                const timeSinceLastActivity = currentTime - lastActivityTime;
-                
-                if (timeSinceLastActivity >= INACTIVITY_TIMEOUT + 20000) {
-                    // After 30 seconds, reload page
-                    window.location.reload();
-                } else if (timeSinceLastActivity >= INACTIVITY_TIMEOUT + 10000) {
-                    // After 20 seconds, try second reset
-                    resetToDemo(2);
-                } else if (timeSinceLastActivity >= INACTIVITY_TIMEOUT) {
-                    // After 10 seconds, try first reset
-                    resetToDemo(1);
-                }
-            }, INACTIVITY_CHECK_INTERVAL);
+            createStartTypingAnimation();
         }
 
-        function resetActivityTimer() {
-            lastActivityTime = Date.now();
+        function resetInactivityTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(resetToDemo, INACTIVITY_TIMEOUT);
         }
-
-        // Initialize the inactivity check on page load
-        window.addEventListener('load', () => {
-            startInactivityCheck();
-            resetActivityTimer();
-        });
-
-        // Update all event listeners to use resetActivityTimer
-        document.addEventListener('mousemove', resetActivityTimer);
-        document.addEventListener('touchstart', resetActivityTimer);
-        document.addEventListener('keydown', resetActivityTimer);
 
         async function createStartTypingAnimation() {
             while (videoContainer.children.length === 0 && !isUserTyping) {
                 const text = "start typing!";
+                const newlineElement = document.createElement('div');
+
                 for (let i = 0; i < text.length; i++) {
                     if (isUserTyping) return;
                     const letter = text[i];
@@ -274,7 +220,9 @@
                         wrapper.className = 'video-wrapper demo-wrapper';
 
                         if (letter === ' ') {
-                            wrapper.style.width = '200px';
+                            // wrapper.style.width = '200px';
+                            newlineElement.className = 'newline';
+                            videoContainer.appendChild(newlineElement);
                         } else {
                             const videos = videoFiles[letter];
                             const randomVideo = videos[Math.floor(Math.random() * videos.length)];
@@ -343,7 +291,7 @@
         document.addEventListener('keydown', function(event) {
             const key = event.key.toLowerCase();
             
-            resetActivityTimer();
+            resetInactivityTimer();
             
             if (key === ' ') {
                 const nextMultiple = Math.ceil(letterCount / 9) * 9;
@@ -465,7 +413,12 @@ function adjustVideoSizes() {
             if (videoContainer.children.length === 0) {
                 createStartTypingAnimation();
             }
+            resetInactivityTimer();
         };
+
+        // Optional: Reset timer on mouse movement and touches as well
+        document.addEventListener('mousemove', resetInactivityTimer);
+        document.addEventListener('touchstart', resetInactivityTimer);
 
         // Add cleanup function
         function cleanupVideo(videoWrapper) {
