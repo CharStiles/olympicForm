@@ -166,7 +166,7 @@
             'w': ['w_cropped.mp4'],
             'x': ['x_cropped.mp4'],
             'y': ['y_cropped.mp4'],
-            'z': ['z_?cropped.mp4']
+            'z': ['z_cropped.mp4']
         };
 
         const videoContainer = document.getElementById('videoContainer');
@@ -220,7 +220,6 @@
                         wrapper.className = 'video-wrapper demo-wrapper';
 
                         if (letter === ' ') {
-                            // wrapper.style.width = '200px';
                             newlineElement.className = 'newline';
                             videoContainer.appendChild(newlineElement);
                         } else {
@@ -234,21 +233,12 @@
                             videoElement.muted = true;
                             videoElement.playsinline = true;
 
-                            const overlay = document.createElement('div');
-                            overlay.className = 'overlay';
-                            overlay.style.backgroundImage = `url(${randomVideo.replace('.mp4', '.png')})`;
-
                             const letterElement = document.createElement('div');
                             letterElement.className = 'letter';
                             letterElement.textContent = letter;
 
                             wrapper.appendChild(videoElement);
-                            wrapper.appendChild(overlay);
                             wrapper.appendChild(letterElement);
-
-                            setTimeout(() => {
-                                overlay.style.opacity = 1;
-                            }, 2000);
                         }
 
                         videoContainer.appendChild(wrapper);
@@ -391,13 +381,6 @@ function adjustVideoSizes() {
                 video.style.width = `${sizeStep}px`;
                 video.style.height = `${sizeStep}px`;
             });
-
-            // Update overlay size to match video size
-            const overlays = videoContainer.querySelectorAll('.overlay');
-            overlays.forEach((overlay) => {
-                overlay.style.width = `${sizeStep}px`;
-                overlay.style.height = `${sizeStep}px`;
-            });
         }
 
         // Re-focus the input field if it loses focus (e.g., on mobile)
@@ -423,14 +406,10 @@ function adjustVideoSizes() {
         // Add cleanup function
         function cleanupVideo(videoWrapper) {
             const video = videoWrapper.querySelector('video');
-            const overlay = videoWrapper.querySelector('.overlay');
             if (video) {
                 video.pause();
                 video.removeAttribute('src');
                 video.load();
-            }
-            if (overlay) {
-                overlay.style.opacity = '0';
             }
         }
     </script>
