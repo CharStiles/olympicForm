@@ -138,34 +138,35 @@
     <script>
         // Update video files to use MP4 instead of WebM
         const videoFiles = {
-            '_': ['__cropped.mp4'],
-            '~': ['~_cropped.mp4'],
-            'a': ['a_cropped.mp4'],
-            'b': ['b_2_cropped.mp4', 'b_cropped.mp4'],
-            'c': ['c_2_cropped.mp4', 'c_cropped.mp4'],
-            'd': ['d_2_cropped.mp4', 'd_cropped.mp4'],
-            'e': ['e_cropped.mp4'],
+            '_': ['_cropped.mp4', '__cropped.mp4'],
+            '^': ['^_cropped.mp4'],
+            '`': ['`_cropped.mp4'],
+            'a': ['a_2_cropped.mp4', 'a_cropped.mp4'],
+            'b': ['b_cropped.mp4'],
+            'c': ['c_cropped.mp4'],
+            'd': ['d_cropped.mp4'],
+            'e': ['e_2_cropped.mp4', 'e_cropped.mp4'],
             'f': ['f_cropped.mp4'],
             'g': ['g_cropped.mp4'],
             'h': ['h_2_cropped.mp4', 'h_cropped.mp4'],
-            'i': ['i_2_cropped.mp4', 'i_cropped.mp4'],
+            'i': ['i_3_cropped.mp4', 'i_4_cropped.mp4', 'i_cropped.mp4'],
             'j': ['j_cropped.mp4'],
             'k': ['k_cropped.mp4'],
-            'l': ['l_2_cropped.mp4', 'l_cropped.mp4'],
+            'l': ['l_cropped.mp4'],
             'm': ['m_cropped.mp4'],
             'n': ['n_cropped.mp4'],
-            'o': ['o_cropped.mp4'],
+            'o': ['o_2_cropped.mp4', 'o_cropped.mp4'],
             'p': ['p_cropped.mp4'],
-            'q': ['q_2_cropped.mp4', 'q_cropped.mp4'],
-            'r': ['r_2_cropped.mp4', 'r_cropped.mp4'],
-            's': ['s_2_cropped.mp4', 's_cropped.mp4'],
+            'q': ['q_cropped.mp4'],
+            'r': ['r_cropped.mp4'],
+            's': ['s_cropped.mp4'],
             't': ['t_cropped.mp4'],
-            'u': ['u_2_cropped.mp4', 'u_cropped.mp4'],
+            'u': ['u_cropped.mp4'],
             'v': ['v_2_cropped.mp4', 'v_cropped.mp4'],
             'w': ['w_cropped.mp4'],
-            'x': ['x_2_cropped.mp4', 'x_cropped.mp4'],
-            'y': ['y_2_cropped.mp4', 'y_cropped.mp4'],
-            'z': ['z_cropped.mp4']
+            'x': ['x_cropped.mp4'],
+            'y': ['y_cropped.mp4'],
+            'z': ['z_?cropped.mp4']
         };
 
         const videoContainer = document.getElementById('videoContainer');
@@ -182,7 +183,7 @@
         let isUserTyping = false;
 
         let inactivityTimer;
-        const INACTIVITY_TIMEOUT = 15000; // 15 sec in milliseconds
+        const INACTIVITY_TIMEOUT = 10000; // 15 sec in milliseconds
 
         // Add counter variable at the top of your script
         let letterCount = 0;
