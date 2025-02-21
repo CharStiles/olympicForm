@@ -182,28 +182,68 @@
 
         let isUserTyping = false;
 
-        let inactivityTimer;
-        const INACTIVITY_TIMEOUT = 10000; // 15 sec in milliseconds
+        const INACTIVITY_TIMEOUT_1 = 10000; // 10 seconds
+        const INACTIVITY_TIMEOUT_2 = 20000; // 20 seconds
+        const INACTIVITY_TIMEOUT_3 = 30000; // 30 seconds
+        let inactivityTimer1;
+        let inactivityTimer2;
+        let inactivityTimer3;
+        let resetAttempts = 0;
 
         // Add counter variable at the top of your script
         let letterCount = 0;
 
-        async function resetToDemo() {
-            while (videoContainer.children.length > 0) {
-                videoContainer.removeChild(videoContainer.lastChild);
-                await sleep(100);
+        async function resetToDemo(attempt = 1) {
+            try {
+                while (videoContainer.children.length > 0) {
+                    videoContainer.removeChild(videoContainer.lastChild);
+                    await sleep(100);
+                }
+                
+                letterCount = 0;
+                isUserTyping = false;
+                h2Element.classList.remove('hidden');
+                
+                createStartTypingAnimation();
+                resetAttempts = 0; // Reset attempts counter on success
+            } catch (error) {
+                console.error(`Reset attempt ${attempt} failed:`, error);
+                // If first attempt fails, try a simpler reset
+                if (attempt === 1) {
+                    videoContainer.innerHTML = ''; // Direct clear
+                    letterCount = 0;
+                    isUserTyping = false;
+                    h2Element.classList.remove('hidden');
+                    createStartTypingAnimation();
+                }
+                // If second attempt fails, try minimal reset
+                else if (attempt === 2) {
+                    videoContainer.innerHTML = '';
+                    letterCount = 0;
+                    isUserTyping = false;
+                }
             }
-            
-            letterCount = 0; // Reset counter
-            isUserTyping = false;
-            h2Element.classList.remove('hidden');
-            
-            createStartTypingAnimation();
         }
 
-        function resetInactivityTimer() {
-            clearTimeout(inactivityTimer);
-            inactivityTimer = setTimeout(resetToDemo, INACTIVITY_TIMEOUT);
+        function resetInactivityTimers() {
+            clearTimeout(inactivityTimer1);
+            clearTimeout(inactivityTimer2);
+            clearTimeout(inactivityTimer3);
+            
+            inactivityTimer1 = setTimeout(() => {
+                resetToDemo(1);
+            }, INACTIVITY_TIMEOUT_1);
+
+            inactivityTimer2 = setTimeout(() => {
+                resetToDemo(2);
+            }, INACTIVITY_TIMEOUT_2);
+
+            inactivityTimer3 = setTimeout(() => {
+                // Last resort: force reload the page
+                if (resetAttempts >= 2) {
+                    window.location.reload();
+                }
+            }, INACTIVITY_TIMEOUT_3);
         }
 
         async function createStartTypingAnimation() {
@@ -287,7 +327,7 @@
         document.addEventListener('keydown', function(event) {
             const key = event.key.toLowerCase();
             
-            resetInactivityTimer();
+            resetInactivityTimers();
             
             if (key === ' ') {
                 const nextMultiple = Math.ceil(letterCount / 9) * 9;
@@ -409,12 +449,12 @@ function adjustVideoSizes() {
             if (videoContainer.children.length === 0) {
                 createStartTypingAnimation();
             }
-            resetInactivityTimer();
+            resetInactivityTimers();
         };
 
         // Optional: Reset timer on mouse movement and touches as well
-        document.addEventListener('mousemove', resetInactivityTimer);
-        document.addEventListener('touchstart', resetInactivityTimer);
+        document.addEventListener('mousemove', resetInactivityTimers);
+        document.addEventListener('touchstart', resetInactivityTimers);
 
         // Add cleanup function
         function cleanupVideo(videoWrapper) {
