@@ -496,7 +496,7 @@ void ofApp::update() {
 
     // Check if video is done
     if (video.getCurrentFrame() >= video.getTotalNumFrames() - 1 || video.getIsMovieDone()) {
-        ofLog() << "Video " << currentVideoIndex << " finished. Current frame: " << video.getCurrentFrame() 
+        ofLog() << "Video " << currentVideoIndex << " finished. Current frame: " << video.getCurrentFrame()
                 << " Total frames: " << video.getTotalNumFrames();
         
         // Stop and close current video
@@ -712,12 +712,177 @@ void ofApp::keyPressed(int key) {
     float w = 1920;
     float h = 1080;
     
-    // make the actual output image
     if(key =='t'){
         testCharNum = ofRandom(numChars);
         test = !test;
     }
-    if (key == 'a'){
+
+    if (key == 'k') {
+        // Process each video in the combo directory
+        for(const auto& videoFile : videoFiles) {
+            // Load the video
+            ofVideoPlayer tempVideo;
+            if(!tempVideo.load(videoFile.getAbsolutePath())) {
+                ofLogError() << "Failed to load video: " << videoFile.getAbsolutePath();
+                continue;
+            }
+            
+            string videoName = videoFile.getBaseName();
+            ofLogNotice() << "Processing video: " << videoName;
+            
+            // Create FBOs at crop dimensions
+            ofFbo shapeMaskFboCropped, videoFboCropped;
+            shapeMaskFboCropped.allocate(1094, 974, GL_RGB);
+            videoFboCropped.allocate(1094, 974, GL_RGB);
+            
+            // Seek to last frame
+            tempVideo.setFrame(tempVideo.getTotalNumFrames() - 1);
+            tempVideo.update();
+            
+            if(tempVideo.isFrameNew()) {
+                // Draw top half (mask) to shapeMaskFboCropped
+                shapeMaskFboCropped.begin();
+                ofClear(0);
+                tempVideo.draw(0, 0, 1094, 974 * 2);  // Draw full video, showing top half
+                shapeMaskFboCropped.end();
+                
+                // Draw bottom half (video) to videoFboCropped
+                videoFboCropped.begin();
+                ofClear(0);
+                tempVideo.draw(0, -974, 1094, 974 * 2);  // Draw full video, offset to show bottom half
+                videoFboCropped.end();
+                
+                // Process mask for contour detection
+                ofPixels maskPixels;
+                shapeMaskFboCropped.readToPixels(maskPixels);
+                colorImage.setFromPixels(maskPixels);
+                colorImage.flagImageChanged();
+
+                // Convert to OpenCV Mat and process
+                cv::Mat colorMat = cv::Mat(colorImage.getHeight(), colorImage.getWidth(), CV_8UC3, colorImage.getPixels().getData());
+                std::vector<cv::Mat> channels(3);
+                cv::split(colorMat, channels);
+                cv::Mat greenChannel = channels[1];
+
+                // Create binary mask
+                cv::Mat binaryMat;
+                cv::threshold(greenChannel, binaryMat, 128, 255, cv::THRESH_BINARY);
+
+                // Morphological operations
+                cv::Mat morphMat;
+                int morphSize = 10;
+                cv::Mat element = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(2 * morphSize + 1, 2 * morphSize + 1));
+                cv::morphologyEx(binaryMat, morphMat, cv::MORPH_CLOSE, element);
+
+                // Find contours
+                std::vector<std::vector<cv::Point>> contours;
+                cv::findContours(morphMat, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+                
+                // If we found any contours
+                if (!contours.empty()) {
+                    // Find the largest contour
+                    size_t largestContourIdx = 0;
+                    double largestArea = 0;
+                    for (size_t i = 0; i < contours.size(); i++) {
+                        double area = cv::contourArea(contours[i]);
+                        if (area > largestArea) {
+                            largestArea = area;
+                            largestContourIdx = i;
+                        }
+                    }
+                    
+                    // Create directory for this video
+                    makeDir(videoName);
+                    
+                    // Save the original frame
+                    ofImage frameImg;
+                    ofPixels framePixels;
+                    videoFboCropped.readToPixels(framePixels);
+                    frameImg.setFromPixels(framePixels);
+                    frameImg.save(videoName + "/frame_0000.png");
+                    
+                    // Create and save the fade frames
+                    ofImage maskImage;
+                    maskImage.allocate(1094, 974, OF_IMAGE_COLOR);
+                    
+                    // Draw the mask
+                    ofFbo maskFbo;
+                    maskFbo.allocate(1094, 974, GL_RGBA);
+                    maskFbo.begin();
+                    ofClear(0);
+                    ofSetColor(255);
+                    ofFill();
+                    ofBeginShape();
+                    for(const auto& point : contours[largestContourIdx]) {
+                        ofVertex(point.x, point.y);
+                    }
+                    ofEndShape(true);
+                    maskFbo.end();
+                    
+                    // Read mask to image
+                    maskFbo.readToPixels(maskImage.getPixels());
+                    maskImage.update();
+                    
+                    // Apply blur to mask
+                    cv::Mat maskMat = cv::Mat(maskImage.getHeight(), maskImage.getWidth(), CV_8UC3, maskImage.getPixels().getData());
+                    cv::Mat blurredMat;
+                    cv::GaussianBlur(maskMat, blurredMat, cv::Size(9, 9), 3.0);
+                    
+                    // Create fade frames
+                    for (int fadeFrame = 0; fadeFrame < 60; fadeFrame++) {
+                        float fadeAmount = fadeFrame / 60.0f;
+                        
+                        ofPixels outputPixels;
+                        outputPixels.allocate(1094, 974, OF_IMAGE_COLOR);
+                        
+                        // Process each pixel with blur
+                        const int blurRadius = 3;
+                        for(int y = 0; y < 974; y++) {
+                            for(int x = 0; x < 1094; x++) {
+                                float avgMask = 0;
+                                int samples = 0;
+                                
+                                for(int by = -blurRadius; by <= blurRadius; by++) {
+                                    for(int bx = -blurRadius; bx <= blurRadius; bx++) {
+                                        int sx = x + bx;
+                                        int sy = y + by;
+                                        
+                                        if(sx >= 0 && sx < 1094 && sy >= 0 && sy < 974) {
+                                            avgMask += maskImage.getColor(sx, sy).getBrightness();
+                                            samples++;
+                                        }
+                                    }
+                                }
+                                
+                                avgMask /= samples;
+                                
+                                ofColor pixelColor = framePixels.getColor(x, y);
+                                float blendAmount = ofMap(avgMask, 0, 255, 0, 1, true);
+                                
+                                float darkAmount = 1.0 - (0.8 * fadeAmount);
+                                float lightAmount = 1.0 + (0.2 * fadeAmount);
+                                float finalAmount = ofLerp(darkAmount, lightAmount, blendAmount);
+                                
+                                pixelColor.setBrightness(min(255.0f, pixelColor.getBrightness() * finalAmount));
+                                outputPixels.setColor(x, y, pixelColor);
+                            }
+                        }
+                        
+                        // Save the fade frame
+                        ofImage fadeImg;
+                        fadeImg.setFromPixels(outputPixels);
+                        fadeImg.save(videoName + "/frame_" + ofToString(fadeFrame + 1, 4, '0') + ".png");
+                    }
+                }
+            }
+            
+            // Clean up
+            tempVideo.close();
+        }
+        ofLogNotice() << "Finished processing all videos";
+    }
+
+    if (key == 'a') {
         ofLog() << "saveProgress";
         std::string sport = "mixxx";
         
@@ -804,7 +969,7 @@ void ofApp::keyPressed(int key) {
             ofFill();
             ofBeginShape();
             for(int i = 0; i < bestFits[c].bodyContours.size(); i++) {
-                ofVertex(bestFits[c].bodyContours[i].x - bestFits[c].centerX, 
+                ofVertex(bestFits[c].bodyContours[i].x - bestFits[c].centerX,
                         bestFits[c].bodyContours[i].y - bestFits[c].centerY);
             }
             ofEndShape(true);
