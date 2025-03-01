@@ -162,7 +162,7 @@
             'r': ['r_2_2_cropped.mp4', 'r_2_cropped.mp4', 'r_cropped.mp4'],
             's': ['s_cropped.mp4'],
             't': ['t_2_cropped.mp4', 't_cropped.mp4'],
-            'u': ['u_2_2_cropped.mp4', 'u_2_cropped.mp4', 'u_cropped.mp4'],
+            'u': ['u_2_2_cropped.mp4'],
             'v': ['v_2_2_cropped.mp4', 'v_2_cropped.mp4', 'v_3_cropped.mp4', 'v_cropped.mp4'],
             'w': ['w_2_cropped.mp4', 'w_cropped.mp4'],
             'x': ['x_2_2_cropped.mp4', 'x_2_cropped.mp4', 'x_cropped.mp4'],
@@ -188,6 +188,12 @@
 
         // Add counter variable at the top of your script
         let letterCount = 0;
+
+        // Add this after the videoFiles declaration
+        const videoIndexTrackers = {};
+        for (const letter in videoFiles) {
+            videoIndexTrackers[letter] = 0;
+        }
 
         async function resetToDemo() {
             while (videoContainer.children.length > 0) {
@@ -227,6 +233,8 @@
                             const videos = videoFiles[letter];
                             const randomVideo = videos[Math.floor(Math.random() * videos.length)];
                             const videoElement = document.createElement('video');
+                            videoIndexTrackers[letter] = (currentIndex + 1) % videos.length;
+
                             videoElement.src = randomVideo;
                             videoElement.autoplay = true;
                             videoElement.controls = false;
@@ -234,14 +242,16 @@
                             videoElement.muted = true;
                             videoElement.playsinline = true;
 
-                            const letterElement = document.createElement('div');
-                            letterElement.className = 'letter';
-                            letterElement.textContent = letter;
+                        const letterElement = document.createElement('div');
+                        letterElement.className = 'letter';
+                        letterElement.textContent = letter;
 
-                            wrapper.appendChild(videoElement);
-                            wrapper.appendChild(letterElement);
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'video-wrapper demo-wrapper';
+
+                        wrapper.appendChild(videoElement);
+                        wrapper.appendChild(letterElement);
                         }
-
                         videoContainer.appendChild(wrapper);
                         adjustVideoSizes();
                         await sleep(400);
@@ -305,8 +315,12 @@
                 }
                 
                 const videos = videoFiles[key];
-                const randomIndex = Math.floor(Math.random() * videos.length);
-                const randomVideoSrc = videos[randomIndex];
+                // Get the next video in sequence
+                const currentIndex = videoIndexTrackers[key];
+                const videoSrc = videos[currentIndex];
+                
+                // Update the index for next time, wrapping around to 0
+                videoIndexTrackers[key] = (currentIndex + 1) % videos.length;
                 
                 const videoElement = document.createElement('video');
                 
@@ -317,7 +331,7 @@
                 videoElement.playsinline = true;
                 videoElement.setAttribute('webkit-playsinline', 'true');
                 
-                videoElement.src = randomVideoSrc;
+                videoElement.src = videoSrc;
                 
                 const wrapper = document.createElement('div');
                 wrapper.className = 'video-wrapper';
