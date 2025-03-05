@@ -231,26 +231,26 @@
                             videoContainer.appendChild(newlineElement);
                         } else {
                             const videos = videoFiles[letter];
-                            const randomVideo = videos[Math.floor(Math.random() * videos.length)];
-                            const videoElement = document.createElement('video');
+                            // Get the next video in sequence for the demo
+                            const currentIndex = videoIndexTrackers[letter];
+                            const videoSrc = videos[currentIndex];
+                            // Update the index for next time
                             videoIndexTrackers[letter] = (currentIndex + 1) % videos.length;
-
-                            videoElement.src = randomVideo;
+                            
+                            const videoElement = document.createElement('video');
+                            videoElement.src = videoSrc;
                             videoElement.autoplay = true;
                             videoElement.controls = false;
                             videoElement.loop = false;
                             videoElement.muted = true;
                             videoElement.playsinline = true;
 
-                        const letterElement = document.createElement('div');
-                        letterElement.className = 'letter';
-                        letterElement.textContent = letter;
+                            const letterElement = document.createElement('div');
+                            letterElement.className = 'letter';
+                            letterElement.textContent = letter;
 
-                        const wrapper = document.createElement('div');
-                        wrapper.className = 'video-wrapper demo-wrapper';
-
-                        wrapper.appendChild(videoElement);
-                        wrapper.appendChild(letterElement);
+                            wrapper.appendChild(videoElement);
+                            wrapper.appendChild(letterElement);
                         }
                         videoContainer.appendChild(wrapper);
                         adjustVideoSizes();
